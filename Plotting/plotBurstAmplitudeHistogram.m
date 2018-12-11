@@ -1,10 +1,10 @@
-function h = plotBurstAmplitudeHistogram(R,BB)
+function [h,l] = plotBurstAmplitudeHistogram(R,BB)
 % Plots Histogram of Burst Amplitudes normalized by series duration
 % (burst/s)
 for cond = 1:size(BB.A,2)
     h(cond) = rateLogHistogram(BB.segA_save{cond},BB.binAmp,diff(BB.DTvec{cond}([1 end]))/60); hold on
     h(cond).FaceColor = R.condcmap(cond,:); ylim(BB.plot.lims.wAmpPrc)
-    h(cond).FaceAlpha = 0.75;
+    h(cond).FaceAlpha = 0.8;
     
     if cond == 2
         statv =statvec(BB.segA_save{1},BB.segA_save{2},1);
@@ -13,6 +13,6 @@ for cond = 1:size(BB.A,2)
     end
 end
 
-legend(R.condname,'Location','NorthEast'); ylabel('Frequency (min^{-1})'); xlabel('log_{10} Amplitude');  xlim([BB.range.Amp(1) BB.range.Amp(end)]); %ylim([0 15]); box off
-title('Burst Amplitude Distribution'); ylim([0 40])
+l = legend(R.condname,'Location','NorthEast'); ylabel('Frequency (min^{-1})'); xlabel('log_{10} Amplitude');  xlim(BB.plot.lims.Amp); %ylim([0 15]); box off
+title('Burst Amplitude Distribution'); ylim(BB.plot.lims.burfreq )
 BB.stats.AmpCond = statvec(BB.segA_save{1},BB.segA_save{2},1);

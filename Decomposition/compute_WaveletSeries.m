@@ -31,8 +31,6 @@ for i = 1:size(data.trial{1},1)
     data.trial{1}(i,:) = x;
 end
 
-% % % Bandpass
-% % % data.trial{1} = ft_preproc_bandpassfilter(data.trial{1}, data.fsample,[6 42], [], 'fir', 'twopass', 'reduce');
 
 % % % cfg = []
 % % % cfg.channel = 'STN_L01';
@@ -42,26 +40,42 @@ end
 % Set up time vector
 data_tvec = data.time{1};
 
-%% Now do Wavelet
-cfg = [];
-cfg.method     = 'wavelet';
-cfg.width      = 12;
-cfg.gwidth     = 5;
-cfg.output     = 'fourier';
-cfg.foi        = 8:0.5:35;
-cfg.toi        = data.time{1};
-cfg.pad = 'nextpow2';
-TFRwave = ft_freqanalysis(cfg, data);
+switch R.BB.decompmeth
+    case 'wavelet'
+        %% Now do Wavelet
+        cfg = [];
+        cfg.method     = 'wavelet';
+        cfg.width      = 12;
+        cfg.gwidth     = 5;
+        cfg.output     = 'fourier';
+        cfg.foi        = 8:0.5:35;
+        cfg.toi        = data.time{1};
+        cfg.pad = 'nextpow2';
+        TFRwave = ft_freqanalysis(cfg, data);
+    case 'filter'
+        % Filter at frequency for power
+        cfg = [];
+        cfg.bandpass = [BB.powfrq-R.BB.decompmeth.filter.bwid BB.decompmeth+R.BB.decompmeth.filter.bwid];
+        dataAmp = ft_preprocessing(cfg,data)
+        % Filter at frequency for connectivity
+        cfg = [];
+        cfg.bandpass = BB.cohfrq;
+        dataPhi = ft_preprocessing(cfg,data)
+        
+        
+end
+
+
 
 for band = 3 % Optionally can do across predefined bands
-    
-    % Indices of foi for Power
+switch R.BB.decompmeth
+    case 'wavelet'
+        % Indices of foi for Power
     %%% fInd = find(TFRwave.freq>=R.bandef(2,1) & TFRwave.freq<=R.bandef(2,2)); % Take all of the indices
     % OR account for smoothing and dont stray outside band
     % % [dum fInd] = min(abs(TFRwave.freq-median(R.bandef(2,:)))); % Take middle!
     %%% OR use peak of spectral power
     [dum fIndAng] = min(abs(TFRwave.freq-BB.powfrq)); % Use closest frequency bin
-    
     % Indices of foi for angle
     [dum fIndPhi] = min(abs(TFRwave.freq-BB.cohfrq)); % Take coh peak!
     
@@ -77,14 +91,22 @@ for band = 3 % Optionally can do across predefined bands
     P = squeeze(TFRwave.fourierspctrm(1,:,fIndAng,:));
     AmpTime = abs(P).^2;
     
+    % Now compute phase
+    P = squeeze(TFRwave.fourierspctrm(1,:,fIndPhi,:));
+    PhiTime = angle(P);    
+    case 'filter'
+    
+        
+        
+        
+        
+end
+    
     % Optionally you can normalize here- NOT USED - This is done later in
     % 'compute_BetaBurstsStats'
     AmpPrcTime = [];  %!
     for ci = 1:2; AmpPrcTime(ci,:) = ( (AmpTime(ci,:)-nanmean(AmpTime(ci,:),2))./nanmean(AmpTime(ci,:),2) )*100; end %!
     
-    % Now compute phase
-    P = squeeze(TFRwave.fourierspctrm(1,:,fIndPhi,:));
-    PhiTime = angle(P);
     for ci = 1:size(PhiTime,1); PhiTime(ci,:) = unwrap(PhiTime(ci,:)); end
     
     % Sliding Window

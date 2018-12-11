@@ -14,13 +14,12 @@ BB.guide = {...
 fsamp = R.fsamp;
 for cond = 1:length(R.condname)
     X = BB.A{cond}; % Copy amplitude data
-   
     Xcd = X>BB.epsAmp; % Threshold on eps
     Xcd = double(Xcd); % Convert from logical
     
     % Work first with lengths
-    BB.period = (2/R.bandef(2,1))*fsamp;
-    consecSegs = SplitVec(find(Xcd(R.BB.AmpDurStat.ind,:)),'consecutive');
+    BB.period = (2/BB.powfrq)*fsamp;
+    consecSegs = SplitVec(find(Xcd( R.BB.pairInd(2),:)),'consecutive');
     segL = cellfun('length',consecSegs);
     segInds = find(segL>(BB.period)); % segs exceeding min length
     
