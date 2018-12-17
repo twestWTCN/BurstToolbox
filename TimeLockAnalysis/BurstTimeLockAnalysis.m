@@ -7,14 +7,19 @@ else
 end
 
 BEpoch = []; REpoch = [];
-
+cmap = BB.struccmap;
 % Threshold Amplitude Data
 X = BB.A{cond}; % Copy amplitude data
 Xcd = X>BB.epsAmp; % Threshold on eps
 Xcd = double(Xcd); % Convert from logical
 
+
+dRPdt =  BB.dRPdtime{cond};
+w = gausswin(0.1*BB.fsamp);
+dRPdt = filter(w,1,dRPdt);
+
 % LocalEps
-localeps = prctile(BB.A{cond},75,2);
+localeps = prctile(BB.A{cond},85,2);
 
 % Work first with lengths
 BB.period = (2/BB.powfrq)*BB.fsamp;
@@ -33,19 +38,19 @@ for i = 1:numel(segInds)
         X = BB.A{cond}(:,epochdef).*hanning(numel(epochdef))';
         for L = 1:size(BB.A{cond},1)
             if any(X(L,:)>localeps(L))
-             [dum epsCross(i,L)] = find(X(L,:)>localeps(L),1,'first');
-            else 
+                [dum epsCross(i,L)] = find(X(L,:)>localeps(L),1,'first');
+            else
                 epsCross(i,L) = 1;
             end
         end
-        
+        PLVbase = nanmedian(BB.PLV{cond});
         [dum T(1)] = min(abs(BB.SWTvec{cond}-BB.T(epochdef(1))));
         T(2) = T(1) + floor(sum(abs(periodT/1000))/diff(BB.TSw(1:2)));
         if epochdef(end)<size(BB.A{cond},2) && epochdef(1) > 0 && T(2)<=size(BB.PLV{cond},2)
             BEpoch(:,:,i) = 1*zscore(BB.A{cond}(:,epochdef),0,2).*hanning(numel(epochdef))'; % ch x time x burstN
             REpoch(:,:,i) = 3*zscore(BB.BPTime{cond}(:,epochdef),0,2).*hanning(numel(epochdef))';
-            PLVpoch(:,i) = BB.PLV{cond}(1,T(1):T(2));
-            dRPdEpoch(:,i) = BB.dRPdtime{cond}(epochdef)';
+            PLVpoch(:,i) = 100*(BB.PLV{cond}(1,T(1):T(2))-PLVbase)/PLVbase ;
+            dRPdEpoch(:,i) = dRPdt(epochdef)';
             meanPLV(i) = mean(PLVpoch(:,i)); %computePPC(squeeze(BB.Phi([1 4],Bo)));
             maxAmp(i) = max(BB.A{cond}(4,Bo));
             minAmp(i) = min(BB.A{cond}(4,preBo));
@@ -67,7 +72,6 @@ elseif PLVcmp == 1
     plvcond = 2:3;
     ls = {'','--',':'};
 end
-cmap = linspecer(4);
 for pc = plvcond
     indtmp = pinds{pc};
     meanEnv = squeeze(nanmean(BEpoch(:,:,indtmp),3)); stdEnv = squeeze(nanstd(BEpoch(:,:,indtmp),[],3));%./sqrt(size(BEpoch(:,:,indtmp),3));
@@ -107,9 +111,9 @@ for pc = plvcond
     legend(lp,R.chsim_name)
     xlabel('Onset Time (ms)'); ylabel('Average Amplitude (a.u.)'); ylim([-11 2]); xlim(periodT)
     
-%     set(gca,'YTickLabel',[]); grid on; grid minor
+    %     set(gca,'YTickLabel',[]); grid on; grid minor
     
-    
+    % Plot Timelocked STN/M1 PLV
     figure(F(2));
     subplot(1,3,cond)
     [lp(pc),hp] = boundedline(SWEpoch,meanPLV',stdPLV');
@@ -117,9 +121,10 @@ for pc = plvcond
     lp(pc).LineStyle = ls{pc};
     lp(pc).LineWidth = 2;
     hp.FaceColor = cmap(i,:); hp.FaceAlpha = 0.5;
-    xlabel('Onset Time (ms)'); ylabel('STN/M1 PLV');  xlim(periodT); grid on
-    %ylim([0.08 0.12]);
+    xlabel('Onset Time (ms)'); ylabel('STN/M1 PLV (\Delta%)');  xlim(periodT); grid on
+    ylim([-20 10]);
     
+    % Plot Timelocked dRPdt
     figure(F(3));
     subplot(1,3,cond)
     [lp(pc),hp] = boundedline(TEpoch,meandRPd',stdRPd');
@@ -130,7 +135,7 @@ for pc = plvcond
     xlabel('Onset Time (ms)'); ylabel('STN/M1 dRP/dt');  xlim(periodT); grid on
     %ylim([0.08 0.12]);
     
-    % Plot Onset Times
+    % Plot Onset Times (violin plots)
     figure(F(4));
     subplot(1,3,cond)
     epsCross = epsCross(:,end:-1:1);
@@ -143,6 +148,19 @@ for pc = plvcond
     ylabel('Onset Time (ms)'); ylim(periodT); grid on
     view([90 -90])
     %ylim([0.08 0.12]);
+    
+    figure(F(5));
+    subplot(1,3,cond)
+    for struc = 1:5
+        if struc<5
+            plot(BB.T(1,1000:end-1000),0.25*zscore(BB.BPTime{cond}(struc,1000:end-1000)) - struc*2,'color',cmap(struc,:))
+        else
+            plot(BB.TSw(1,1000:end-1000),0.25*zscore(BB.PLV{cond}(1,1000:end-1000)) - struc*2,'color','b')
+        end
+        hold on
+        xlim([120 122])
+    end
+    
     
 end
 

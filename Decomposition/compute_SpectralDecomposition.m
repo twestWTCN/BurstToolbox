@@ -86,17 +86,21 @@ switch R.BB.decompmeth.type
         % Now compute Amplitude
         P = squeeze(TFRwave.fourierspctrm(1,:,fIndAng,:));
         AmpTime = abs(P).^2;
+        PhiTime = angle(P);
+        Z = AmpTime.*cos(PhiTime);
         
         % Now compute phase
         P = squeeze(TFRwave.fourierspctrm(1,:,fIndPhi,:));
         PhiTime = angle(P);
-        Z = AmpTime.*cos(PhiTime);
+        
     case 'filter'
         P = squeeze(dataAmp.trial{1});
         AmpTime = abs(hilbert(P)).^2;
-        P = squeeze(dataAmp.trial{1});
         PhiTime = angle(hilbert(P));
         Z = AmpTime.*cos(PhiTime);
+
+        P = squeeze(dataPhi.trial{1});
+        PhiTime = angle(hilbert(P));
 end
 
 
@@ -145,6 +149,11 @@ BB.dRPdtime{cond} = diff(RPdtime);
 BB.PhiTime{cond} = PhiTime;
 BB.BPTime{cond} = Z;
 
+% cfg = [];
+% cfg.bandpass = [BB.powfrq-2 BB.powfrq+2];
+% dataWB = ft_preprocessing(cfg,data);
+
+BB.rawTime{cond} = Z; %dataWB.trial{1};
 BB.history.Origin = date;
 try
     BB.history.git = getGitInfo();
