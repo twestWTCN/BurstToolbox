@@ -2,7 +2,7 @@ function h = plotBurstDurationHistogram(R,BB)
 % Plots Histogram of Burst Durations normalized by series duration
 % (burst/s)
 for cond = 1:size(BB.A,2)
-    h(cond) = rateLogHistogram(BB.segL_t_save{cond},BB.range.segDur,diff(BB.DTvec{cond}([1 end]))/60); hold on
+    h(cond) = rateHistogram(BB.segL_t_save{cond},BB.range.segDur,diff(BB.DTvec{cond}([1 end]))/60,0); hold on
     h(cond).FaceColor = R.condcmap(cond,:);
     h(cond).FaceAlpha = 0.8;
     %         a = gca;
