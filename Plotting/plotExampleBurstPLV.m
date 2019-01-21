@@ -5,9 +5,9 @@ for cond = 1:2
     % Amplitude
     subplot(3,2,sub2ind([2 3],cond,1))
     yyaxis left
-    a(1) = plot(BB.T,BB.A{cond}(mInd,:)); hold on
+    a(1) = plot(BB.DTvec{cond},BB.A{cond}(mInd,:)); hold on
     a(1).Color = R.condcmap(cond,:); ylim([0 200])
-    a(3) = plot(BB.T([1 length(BB.A{cond}(mInd,:))]),[BB.epsAmp BB.epsAmp],'--');
+    a(3) = plot(BB.DTvec{cond}([1 length(BB.A{cond}(mInd,:))]),[BB.epsAmp(mInd) BB.epsAmp(mInd)],'--');
     a(3).Color = [0 0 0];
     a(3).LineWidth = 1;
     ylabel([R.bandinits{2} ' Amplitude'])
@@ -37,10 +37,10 @@ for cond = 1:2
     ylabel([R.bandinits{2} ' PPC'])
     
     yyaxis left
-    a(2) = plot(BB.T([1:length(BB.A{cond}(mInd,:))]),BB.A{cond}(mInd,:)); hold on
+    a(2) = plot(BB.DTvec{cond}([1:length(BB.A{cond}(mInd,:))]),BB.A{cond}(mInd,:)); hold on
     a(2).Color = R.condcmap(cond,:);
     a(2).LineWidth = 1.5;
-    a(3) = plot(BB.T([1 length(BB.A{cond}(mInd,:))]),[BB.epsAmp BB.epsAmp],'--');
+    a(3) = plot(BB.DTvec{cond}([1 length(BB.A{cond}(mInd,:))]),[BB.epsAmp(mInd) BB.epsAmp(mInd)],'--');
     a(3).Color = [0 0 0];
     a(3).LineWidth = 1;
     ylabel([R.bandinits{2} ' Amplitude'])

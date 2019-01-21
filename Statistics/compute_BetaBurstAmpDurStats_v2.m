@@ -1,4 +1,4 @@
-function [BB] = compute_BetaBurstAmpDurStats_v2(R,BB,F,plotop)
+function [BB] = compute_BetaBurstAmpDurStats_v2(R,BB)
 % compute_BetaBurstAmpDurStats_v2 - This function will compute binned
 % statistics from the thresholded amplitude series and plot here if
 % desired
@@ -88,28 +88,8 @@ for cond = 1:length(R.condname)
     else
         BB.corrs.ampdur.spearman{cond} = [NaN NaN];
         BB.corrs.ampdur.rest_regress{cond} = [NaN NaN];
-    end
-    
+    end   
 end
-if plotop == 1
-    figure(F(1))
-    colormap(R.condcmap)
-    subplot(3,3,1)
-    plotBurstDurationHistogram(R,BB)
-    
-    subplot(3,3,2)
-    plotBurstAmplitudeHistogram(R,BB)
-    
-    % Now do duration vs amplitude
-    subplot(3,3,3)
-    plotBurstAmpDurScatter(R,BB)
-    
-    subplot(3,1,2);
-    plotAmpBinDurBar(R,BB)
-    
-    subplot(3,1,3);
-    plotDurBinAmpBar(R,BB)
-    %     BB.Seg_binAmpStats
-end
+
 
 % function binstats(XY)
