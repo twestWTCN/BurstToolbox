@@ -1,4 +1,4 @@
-function BB = BurstTimeLockAnalysis_SortByLength(R,cond,BB,PLVcmp,F)
+function BB = BurstTimeLockAnalysis_SortByLength(R,cond,spcondind,BB,PLVcmp,F)
 % Tool for conducting the aligned bursts
 if PLVcmp == 0
     periodT = [-400 400];
@@ -26,20 +26,20 @@ BB.period = (2/BB.powfrq)*BB.fsamp;
 consecSegs = SplitVec(find(Xcd(R.BB.pairInd(2),:)),'consecutive');
 segL = cellfun('length',consecSegs);
 segInds = find(segL>(BB.period)); % segs exceeding min length
-clear BEpoch REpoch PLVpoch dRPdEpoch meanPLV maxAmp minAmp epsCross
+clear BEpoch REpoch PLVpoch dRPdEpoch meanPLV maxAmp minAmp epsCross usedinds
 for i = 1:numel(segInds)
     Bo = consecSegs{segInds(i)};
     preBo = [Bo(1)+ ceil((periodT(1)/1e3)*BB.fsamp):Bo(1)]; %pre burst onset
     postBo = [Bo(1): Bo(1) + floor((periodT(2)/1e3)*BB.fsamp)]; % post burst onset
     epochdef = [preBo(1):postBo(end)];
     % Convert from full time to SW time
-    if preBo(1)>0
+    if preBo(1)>0 && postBo(end)<size(BB.A{cond},2)
         % Find onset Time aligned to beta onset
         X = BB.A{cond}(:,epochdef).*hanning(numel(epochdef))';
         Amps(i) = max(X(4,:));
         
         for L = 1:size(BB.A{cond},1)
-            if any(X(L,:)>localeps(L))
+            if any(X(L,:)>localeps(L)) % For finding maximums locally
                 [dum epsCross(i,L)] = find(X(L,:)==max(X(L,:)),1,'first');
             else
                 epsCross(i,L) = 1;
@@ -50,22 +50,29 @@ for i = 1:numel(segInds)
         T(2) = T(1) + floor(sum(abs(periodT/1000))/diff(BB.TSw(1:2)));
         if epochdef(end)<size(BB.A{cond},2) && epochdef(1) > 0 && T(2)<=size(BB.PLV{cond},2)
             BEpoch(:,:,i) = 1*zscore(BB.A{cond}(:,epochdef),0,2).*hanning(numel(epochdef))'; % ch x time x burstN
-            REpoch(:,:,i) = 3*zscore(BB.rawTime{cond}(:,epochdef),0,2).*hanning(numel(epochdef))';
+            REpoch(:,:,i) = 1*zscore(BB.rawTime{cond}(:,epochdef),0,2).*hanning(numel(epochdef))';
+%             BEpoch(:,:,i) = 0.2*BB.A{cond}(:,epochdef); %.*hanning(numel(epochdef))'; % ch x time x burstN
+%             REpoch(:,:,i) = 0.5*BB.rawTime{cond}(:,epochdef).*hanning(numel(epochdef))';
             PLVpoch(:,i) = 100*(BB.PLV{cond}(1,T(1):T(2))-PLVbase)/PLVbase ;
             dRPdEpoch(:,i) = dRPdt(epochdef)';
             meanPLV(i) = mean(PLVpoch(:,i)); %computePPC(squeeze(BB.Phi([1 4],Bo)));
             maxAmp(i) = max(BB.A{cond}(4,Bo));
             minAmp(i) = min(BB.A{cond}(4,preBo));
+            Segpoch(i) = segL(segInds(i));
         end
     end
 end
 
 % Sort by Length
-segLengths = (segL(segInds)/BB.fsamp*1000);
+
+segLengths = (Segpoch/BB.fsamp*1000);
+if PLVcmp == 1
 pinds{1} = find(segLengths<200);
 pinds{2} = find(segLengths>=200 & segLengths<400);
 pinds{3} = find(segLengths>=400);
-
+else
+    pinds{1} = 1:size(BEpoch,3);
+end
 % Sort by Amp
 % pinds{1} = find(Amps<prctile(Amps,25));
 % pinds{2} = find(Amps>=prctile(Amps,25) & Amps<prctile(Amps,75));
@@ -93,7 +100,7 @@ for pc = plvcond
     
     [x ind] = max(meanEnv,[],2);
     figure(F(1));
-    subplot(1,3,cond)
+    subplot(1,3,spcondind)
     for i = 1:size(BEpoch,1)
         XY = meanEnv(i,:);
         XY = XY-mean(XY);
@@ -103,7 +110,7 @@ for pc = plvcond
         lp(i).Color = cmap(i,:);
         lp(i).LineStyle = ls{pc};
         lp(i).LineWidth = 2;
-        hp.FaceColor = cmap(i,:); hp.FaceAlpha = 0;
+        hp.FaceColor = cmap(i,:); hp.FaceAlpha = 0.5;
         
             XY = meanRaw(i,:);
             %     XY = 3.5*meanRaw(i,:);
@@ -120,60 +127,49 @@ for pc = plvcond
             legn{2*i} = [R.chsim_name{i} ' max'];
         end
     end
-    legend(lp,R.chsim_name)
+%     legend(lp,R.chsim_name)
     xlabel('Onset Time (ms)'); ylabel('Average Amplitude (a.u.)'); ylim([-11 2]); xlim(periodT)
     
     %     set(gca,'YTickLabel',[]); grid on; grid minor
     
     % Plot Timelocked STN/M1 PLV
     figure(F(2));
-    subplot(1,3,cond)
+    subplot(1,3,spcondind)
     [lp(pc),hp] = boundedline(SWEpoch,meanPLV',stdPLV');
     hp.FaceAlpha = 0;
     lp(pc).Color = cmap(i,:);
     lp(pc).LineStyle = ls{pc};
     lp(pc).LineWidth = 2;
-    hp.FaceColor = cmap(i,:); hp.FaceAlpha = 0;
+    hp.FaceColor = cmap(i,:); hp.FaceAlpha = 0.5;
     xlabel('Onset Time (ms)'); ylabel('STN/M1 PLV (\Delta%)');  xlim(periodT); grid on
-    ylim([-20 10]);
+    ylim([-20 2.5]);
     
     % Plot Timelocked dRPdt
     figure(F(3));
-    subplot(1,3,cond)
+    subplot(1,3,spcondind)
     [lp(pc),hp] = boundedline(TEpoch,meandRPd',stdRPd');
     lp(pc).Color = cmap(2,:);
     lp(pc).LineStyle = ls{pc};
     lp(pc).LineWidth = 2;
-    hp.FaceColor = cmap(2,:); hp.FaceAlpha = 0;
+    hp.FaceColor = cmap(2,:); hp.FaceAlpha = 0.5;
     xlabel('Onset Time (ms)'); ylabel('STN/M1 dRP/dt');  xlim(periodT); grid on
     %ylim([0.08 0.12]);
     
     % Plot Onset Times (violin plots)
     figure(F(4));
-    subplot(1,3,cond)
+    subplot(1,3,spcondind)
     epsCross = epsCross(2:end,end:-1:1);
     Z = TEpoch(epsCross);
     Z(Z==periodT(1)) = NaN;
-    h = violin(Z,'facecolor',cmap(end:-1:1,:),'facealpha',0,'mc','k:','medc','k-');
+    h = violin(Z,'facecolor',cmap(end:-1:1,:),'facealpha',1,'mc','k:','medc','k-');
     a = gca;
     a.XTick = 1:4;
     a.XTickLabel = R.chsim_name(end:-1:1);
-    ylabel('Onset Time (ms)'); ylim(periodT); grid on
+    ylabel('Onset Time (ms)'); ylim([-200 200]); grid on
     view([90 -90])
     %ylim([0.08 0.12]);
     
-    figure(F(5));
-    subplot(1,3,cond)
-    for struc = 1:5
-        if struc<5
-            plot(BB.T(1,1000:end-1000),0.25*zscore(BB.BPTime{cond}(struc,1000:end-1000)) - struc*2,'color',cmap(struc,:))
-        else
-            plot(BB.TSw(1,1000:end-1000),0.25*zscore(BB.PLV{cond}(1,1000:end-1000)) - struc*2,'color','b')
-        end
-        hold on
-        xlim([120 122])
-    end
-    
+   
     
 end
 

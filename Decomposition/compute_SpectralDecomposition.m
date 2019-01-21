@@ -98,7 +98,7 @@ switch R.BB.decompmeth.type
         AmpTime = abs(hilbert(P)).^2;
         PhiTime = angle(hilbert(P));
         Z = AmpTime.*cos(PhiTime);
-
+        
         P = squeeze(dataPhi.trial{1});
         PhiTime = angle(hilbert(P));
 end
@@ -131,6 +131,12 @@ switch R.BB.PLmeth
             PLVTime(1,i) = computePPC(remnan(squeeze(swPhi(:,i,:))));
         end
 end
+
+% % % Normalize Amplitude Traces
+% % for i = 1:size(AmpTime,1)
+% %     AmpTime(i,:) = (AmpTime(i,:)-nanmean(AmpTime(i,:)))./nanstd(AmpTime(i,:));
+% %     AmpTime(i,:) =  AmpTime(i,:)-min( AmpTime(i,:));
+% % end
 %     %     slide_dphi_12 = wrapToPi(slide_dphi_12);
 % PLV
 RPTime(1,:) = circ_mean(slide_dphi_12, [], 1);
@@ -139,6 +145,7 @@ RPTime(1,:) = circ_mean(slide_dphi_12, [], 1);
 sw_tvec = (round(median(sind,1)));
 % Convert to data time
 sw_tvec = data.time{1}(sw_tvec);
+
 BB.A{cond} = AmpTime;
 BB.DTvec{cond} = data_tvec;
 BB.PLV{cond} = PLVTime;
@@ -152,7 +159,7 @@ BB.BPTime{cond} = Z;
 % cfg = [];
 % cfg.bandpass = [BB.powfrq-2 BB.powfrq+2];
 % dataWB = ft_preprocessing(cfg,data);
-
+BB.data{cond} = data.trial{1};
 BB.rawTime{cond} = Z; %dataWB.trial{1};
 BB.history.Origin = date;
 try
