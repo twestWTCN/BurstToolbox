@@ -119,8 +119,8 @@ overlap = R.BB.SW.winover; %
 % Unwrap the phi time series
 for ci = 1:size(PhiTime,1); PhiTime(ci,:) = unwrap(PhiTime(ci,:)); end
 
-RPdtime = diff(PhiTime(R.BB.pairInd,:),1,1)';
-[slide_dphi_12,sind] = slideWindow(RPdtime, floor(winsize), floor(winsize*overlap));
+RPtime = diff(PhiTime(R.BB.pairInd,:),1,1)';
+[slide_dphi_12,sind] = slideWindow(RPtime, floor(winsize), floor(winsize*overlap));
 switch R.BB.PLmeth
     case 'PLV'
         PLVTime(1,:) = abs(mean(exp(-1i*slide_dphi_12),1));
@@ -139,28 +139,37 @@ end
 % % end
 %     %     slide_dphi_12 = wrapToPi(slide_dphi_12);
 % PLV
-RPTime(1,:) = circ_mean(slide_dphi_12, [], 1);
+swRP(1,:) = circ_mean(slide_dphi_12, [], 1);
 
 % Get indices of SW centres
 sw_tvec = (round(median(sind,1)));
 % Convert to data time
 sw_tvec = data.time{1}(sw_tvec);
 
-BB.A{cond} = AmpTime;
-BB.DTvec{cond} = data_tvec;
+%% Save variables to master structure
+BB.guide = {...
+    'AEnv - amplitude env series';...
+    'Tvec - data time vec';...
+    'PLV - sliding window PLV';...
+    'SWTvec - sliding window tvec';...
+    'RP - relative phase';...
+    'swRP - sliding window RP';...
+    'dRP - diff RP';...
+    'Phi - phase series';...
+    'BP - bandpassed data';...
+    'data - original data';...
+    };
+BB.AEnv{cond} = AmpTime;
+BB.Tvec{cond} = data_tvec;
 BB.PLV{cond} = PLVTime;
 BB.SWTvec{cond} = sw_tvec;
-BB.RP{cond} = RPTime;
-BB.RPdtime{cond} = RPdtime;
-BB.dRPdtime{cond} = diff(RPdtime);
-BB.PhiTime{cond} = PhiTime;
-BB.BPTime{cond} = Z;
-
-% cfg = [];
-% cfg.bandpass = [BB.powfrq-2 BB.powfrq+2];
-% dataWB = ft_preprocessing(cfg,data);
+BB.RP{cond} = RPtime;
+BB.RPd{cond} = swRP;
+BB.dRP{cond} = diff(RPtime);
+BB.Phi{cond} = PhiTime;
+BB.BP{cond} = Z;
 BB.data{cond} = data.trial{1};
-BB.rawTime{cond} = Z; %dataWB.trial{1};
+
 BB.history.Origin = date;
 try
     BB.history.git = getGitInfo();

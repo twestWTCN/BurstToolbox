@@ -1,51 +1,18 @@
-function [BB] = compute_BetaBurstAmpDurStats_v2(R,BB)
+function [BB] = computeBetaBurstAmpDurStats_v2(R,BB)
 % compute_BetaBurstAmpDurStats_v2 - This function will compute binned
 % statistics from the thresholded amplitude series and plot here if
 % desired
 % Tim West- UCL, WTCN 11/12/2018
-BB.guide = {...
-    'segL_t_save = segment lengths in ms'
-    'segA_save = seg amplitudes'
-    'AmpBin = frequencies (occurence) of binned amps'
-    'binSgEd = set of bin edges'
-    'segTInds = start end of time'
-    };
+% BB.guide = {...
+%     'segL_t_save = segment lengths in ms'
+%     'segA_save = seg amplitudes'
+%     'AmpBin = frequencies (occurence) of binned amps'
+%     'binSgEd = set of bin edges'
+%     'segTInds = start end of time'
+%     };
 
-fsamp = R.fsamp;
 for cond = 1:length(R.condname)
-    X = BB.A{cond}; % Copy amplitude data
-    Xcd = X>BB.epsAmp; % Threshold on eps
-    Xcd = double(Xcd); % Convert from logical
-    
-    % Work first with lengths
-    BB.period = (2/BB.powfrq)*fsamp;
-    consecSegs = SplitVec(find(Xcd( R.BB.pairInd(2),:)),'consecutive');
-    segL = cellfun('length',consecSegs);
-    segInds = find(segL>(BB.period)); % segs exceeding min length
-    
-    % Work first with lengths
-    BB.segL_t_save{cond} = (segL/fsamp)*1000; % Segment lengths in ms
-    BB.segL_t_save{cond}(setdiff(1:length(segL),segInds)) = [];
-    
-    % Segment Time indexes
-    BB.segInds{cond}{1} = NaN(1,2); BB.segTInds{cond}{1} = NaN(1,2);
-    for ci = 1:numel(segInds);
-        BB.segInds{cond}{ci} = consecSegs{segInds(ci)};
-        BB.segTInds{cond}{ci} = (consecSegs{segInds(ci)}([1 end])/fsamp);
-    end
-    
-    % Now do Amplitudes
-    BB.segA_save{cond} = NaN;
-    for ci = 1:numel(segInds)
-        BB.segA_save{cond}(ci) = nanmean(X(2,consecSegs{segInds(ci)}));
-        %         BB.segAPrc_save{cond}(ci) = nanmean(Xnorm(2,consecSegs{segInds(ci)})); % Uses the Normed Amplitudes
-    end
-    %%%
-    X = BB.segA_save{cond};
-    Xnorm = 100*(X-median(X))/median(X);
-    %     Xnorm = Xnorm-median(Xnorm); % 2nd normalization brings conditions closer to zero mean
-    BB.segAPrc_save{cond} = Xnorm; %nanmean(Xnorm(2,consecSegs{segInds(ci)})); % Uses the Normed Amplitudes
-    %%%
+    BB = defineBetaEvents(R,BB);
     
     % Bin data by Amp and find Length
     BB.binAmp = [BB.range.Amp inf];

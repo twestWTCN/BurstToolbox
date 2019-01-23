@@ -1,4 +1,9 @@
 function plotExampleBurstPLV(R,BB)
+    BB.T = linspace(0,length([BB.A{1:2}])/BB.fsamp,length([BB.A{1:2}])); % Data time
+    BB.TSw = linspace(0,length([BB.PLV{1:2}])/BB.fsamp_sw,length([BB.PLV{1:2}])); % sliding window time
+
+
+
 set(gcf,'defaultAxesColorOrder',[[0 0 0]; [0.2 0.2 0.6]]);
 for cond = 1:2
     mInd = R.BB.pairInd(2);
