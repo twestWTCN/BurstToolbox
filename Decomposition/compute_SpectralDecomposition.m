@@ -103,6 +103,9 @@ switch R.BB.decompmeth.type
         PhiTime = angle(hilbert(P));
 end
 
+% Unwrap the phi time series
+for ci = 1:size(PhiTime,1); PhiTime(ci,:) = unwrap(PhiTime(ci,:)); end
+RPtime = diff(PhiTime(R.BB.pairInd,:),1,1)';
 
 %% (optional) normalize the amplitudes
 % Optionally you can normalize the amplitude timeseries here- NOT USED - This is done later in
@@ -115,11 +118,7 @@ end
 % Sliding Window parameters
 winsize = R.BB.SW.winsize.*data.fsample; % Window Size
 overlap = R.BB.SW.winover; %
-
-% Unwrap the phi time series
-for ci = 1:size(PhiTime,1); PhiTime(ci,:) = unwrap(PhiTime(ci,:)); end
-
-RPtime = diff(PhiTime(R.BB.pairInd,:),1,1)';
+% Run the sliding window over RP series
 [slide_dphi_12,sind] = slideWindow(RPtime, floor(winsize), floor(winsize*overlap));
 switch R.BB.PLmeth
     case 'PLV'
@@ -164,7 +163,7 @@ BB.Tvec{cond} = data_tvec;
 BB.PLV{cond} = PLVTime;
 BB.SWTvec{cond} = sw_tvec;
 BB.RP{cond} = RPtime;
-BB.RPd{cond} = swRP;
+BB.swRP{cond} = swRP;
 BB.dRP{cond} = diff(RPtime);
 BB.Phi{cond} = PhiTime;
 BB.BP{cond} = Z;

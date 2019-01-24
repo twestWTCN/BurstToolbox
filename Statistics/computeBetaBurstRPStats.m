@@ -1,41 +1,31 @@
-function BB = computeBetaBurstRPStats(R,BB,F,plotop)
-cnt = 0;
-for band = 3
-    cnt = cnt +1;
-    for cond = 1:length(R.condname)
-        
-        if isequal([3 1],[band cond]); BB.Seg_binRP = []; BB.PLV_binRP = []; end
-        for bs = 1:numel(BB.range.RP)-1
-            if size(BB.segRP{cond}(:),1)>1
-            s = find(BB.segRP{cond}(band,:)>=BB.range.RP(bs) & BB.segRP{cond}(band,:)<BB.range.RP(bs+1));
-            else
-                s = 1; band = 1;
+function BB = computeBetaBurstRPStats(R,BB)
+% This function computes relative phase
+BB.Seg_binRP = []; BB.PLV_binRP = [];
+for cond = 1:length(R.condname)
+    if ~isfield(BB,'segRP') % if doesnt exist compute relative phase
+        for ci = 1:size(BB.segAmp{cond},2)
+            dind  = BB.segInds{cond}{ci};
+            if ~any(isnan(dind))
+                X = remnan(BB.RP{cond}(dind));
+                BB.segRP{cond}(ci) = circ_mean(X,[],1); % THIS IS A PROBLEM
             end
-            % Unnormalized
-            w = (numel(s)/numel(BB.segA_save{cond}));
-            if numel(s)<2; w = 0; end
-            x  = nanmean(BB.segA_save{cond}(s));
-            xv = nanstd(BB.segA_save{cond}(s))/sqrt(numel(s));
-            
-            BB.Amp_binRP(bs,band,cond,1) = w*x;
-            BB.Amp_binRP(bs,band,cond,2) = w*xv;
-            BB.Amp_binRP_data{cond}{bs} = BB.segA_save{cond}(s);
-            
-            % Percentage Deviation
-            w = numel(s)/numel(BB.segAPrc_save{cond});
-            if numel(s)<2; w = 0; end
-            x  = nanmean(BB.segAPrc_save{cond}(s));
-            xv = nanstd(BB.segAPrc_save{cond}(s))/sqrt(numel(s));
-            
-            BB.AmpPrc_binRP(bs,band,cond,1) = w*x;
-            BB.AmpPrc_binRP(bs,band,cond,2) = w*xv;
-            BB.AmpPrc_binRP_data{cond}{bs} = BB.segAPrc_save{cond}(s);
-            
-            x = nanmean(BB.segPLV{cond}(:,band,s));
-            xv = nanstd(BB.segPLV{cond}(:,band,s))/sqrt(numel(s));
-            BB.PLV_binRP(bs,band,cond,1)  = w*x;
-            BB.PLV_binRP(bs,band,cond,2) = w*xv;
-            BB.PLV_binRP_data{cond}{bs} = BB.segPLV{cond}(s);
-        end       
+        end
     end
+    
+    % Bin amplitude by RP
+    [BB.Amp_binRP(:,:,cond),BB.Amp_binRP_data{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.RP);
+    % Bin normalized amplitude by RP
+    [BB.AmpPrc_binRP(:,:,cond),BB.AmpPrc_binRP_data{cond}] = binDatabyRange(BB.segAmpPrc{cond},BB.range.RP);
+    % Bin sync index by RP
+    [BB.PLV_binRP(:,:,cond),BB.PLV_binRP_data{cond}] = binDatabyRange(BB.segPLV{cond},BB.range.RP);
+    
 end
+BB.guide = [BB.guide;{...
+    'Amp_binRP - burst amplitude by RP'
+    'Amp_binRP_data - "" data'
+    'AmpPrc_binRP - burst Amp bin by RP'
+    'AmpPrc_binRP_data - "" data'
+    'PLV_binRP - sync index bin by RP'
+    'PLV_binRP_data - "" data'
+    }];
+

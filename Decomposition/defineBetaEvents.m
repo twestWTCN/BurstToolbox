@@ -1,49 +1,46 @@
 function BB = defineBetaEvents(R,BB)
 % Function defines beta events by threshold crossing
-BB.guide = [BB.guide;{...
-    'segInds = seg indices of original data'
-    'segL = seg durations'
-    'AmpBin = frequencies (occurence) of binned amps'
-    'binSgEd = set of bin edges'
-    'segTInds =start end of time'
-    }];
+if ~any(strncmp(BB.guide,'segInds',7))
+    BB.guide = [BB.guide;{...
+        'segInds - seg indices of original data'
+        'segT - seg time vector'
+        'segDur - segment duration (ms)'
+        'segAmp - segment amplitudes'
+        'segAmpPrc - prctile normed amplitudes'
+        }];
+end
 for cond = 1:length(R.condname)
     % Threshold Envelopes to get bursts
     BB.epsAmp = prctile([BB.AEnv{:}],R.BB.thresh_prctile,2);
     BB.epsPLV = prctile([BB.PLV{:}],R.BB.thresh_prctile,2);
     
-    X = BB.AEnv{cond}; % Copy amplitude data
-    Xcd = X>BB.epsAmp; % Threshold on eps
-    Xcd = double(Xcd); % Convert from logical
+    Amp = BB.AEnv{cond}; % Copy amplitude data
+    ThreshX = double(Amp>BB.epsAmp); % Threshold on eps
     
     % Set a threshold on the shortest lengths
     BB.period = (R.BB.minBBlength/BB.powfrq)*BB.fsamp;
     % Get Bursts
-    betaBurstInds = SplitVec(find(Xcd(R.BB.pairInd(2),:)),'consecutive');
+    betaBurstInds = SplitVec(find(ThreshX(R.BB.pairInd(2),:)),'consecutive');
     segL = cellfun('length',betaBurstInds);
     % Now crop using minimum
-    betaBurstInds = {betaBurstInds{segL>BB.period}}; % segs exceeding min length
+    burstSelection = segL>BB.period;
+% %     segL = segL(burstSelection);
+% %     BB.segL{cond} = (segL/BB.fsamp)*1000; % convert to ms
+    
+    betaBurstInds = {betaBurstInds{burstSelection}}; % segs exceeding min length
     BB.segInds{cond} = betaBurstInds;
     
-    segL = segL(segL>(BB.period));
-    BB.segL{cond} = (segL/BB.fsamp)*1000; % convert to ms
-    
     % Segment Time indexes
-    BB.segInds{cond}{1} = NaN(1,2); BB.segTInds{cond}{1} = NaN(1,2);
+    BB.segInds{cond}{1} = NaN(1,2); BB.segDur{cond} = NaN; BB.segAmp{cond} = NaN;
     for ci = 1:numel(betaBurstInds)
-        BB.segInds{cond}{ci} = betaBurstInds{betaBurstInds(ci)};
-        BB.segTInds{cond}{ci} = (betaBurstInds{betaBurstInds(ci)}([1 end])/BB.fsamp);
+        BB.segT{cond}{ci} = BB.Tvec{cond}(betaBurstInds{ci}); % segment time vectors
+        BB.segDur{cond}(ci) = diff(BB.segT{cond}{ci}([1 end]))*1000; % segment duration (ms)
+        BB.segAmp{cond}(ci) = nanmean(Amp(2,betaBurstInds{ci}));
     end
-    
-    % Now do Amplitudes
-    BB.segA_save{cond} = NaN;
-    for ci = 1:numel(betaBurstInds)
-        BB.segA_save{cond}(ci) = nanmean(X(2,betaBurstInds{betaBurstInds(ci)}));
-        %         BB.segAPrc_save{cond}(ci) = nanmean(Xnorm(2,consecSegs{segInds(ci)})); % Uses the Normed Amplitudes
-    end
-    %%%
-    X = BB.segA_save{cond};
-    Xnorm = 100*(X-median(X))/median(X);
+
+    %%% Normalization
+    A = BB.segAmp{cond};
+    Xnorm = 100*(A-nanmedian(A))/nanmedian(A);
     %     Xnorm = Xnorm-median(Xnorm); % 2nd normalization brings conditions closer to zero mean
-    BB.segAPrc_save{cond} = Xnorm; %nanmean(Xnorm(2,consecSegs{segInds(ci)})); % Uses the Normed Amplitudes
+    BB.segAmpPrc{cond} = Xnorm; %nanmean(Xnorm(2,consecSegs{segInds(ci)})); % Uses the Normed Amplitudes
 end

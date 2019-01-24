@@ -1,70 +1,53 @@
 function BB = computeBetaBurstPLVStats(R,BB)
-for cond = 1:length(R.condname)
-    for band = 3; %2:size(R.bandef,1)
-        % Segment PLV during Bursts
-        if isequal([band cond],[3 1])
-            BB.segPLV = {nan(1,size(R.bandef,1),2) nan(1,size(R.bandef,1),2)};
-            BB.segRP  = {nan(size(R.bandef,1),2) nan(size(R.bandef,1),2)};
-            BB.segRP = {nan(1) nan(1)};
-            BB.segPLV  = {nan(1) nan(1)};
-        end
-        for ci = 1:size(BB.segA_save{cond},2)
-            tind = BB.segTInds{cond}{ci};
-            dind  = BB.segInds{cond}{ci};
-            swind = find(BB.SWTvec{cond} >= tind(1) & BB.SWTvec{cond} < tind(2));
-            %             BB.segPLV{cond}(:,band,ci) = mean(BB.PLV{cond}(band,swind));
-            %             BB.segRP{cond}(band,ci) = circ_mean(BB.RP{cond}(band,swind),[],2);
-            if ~any(isnan(dind))
-                X = remnan(BB.RPdtime{cond}(dind));
-                BB.segRP{cond}(band,ci) = circ_mean(X,[],1);
-                %             BB.segPLV{cond}(:,band,ci) = bootstrapPLV(X,BB.period);
-                BB.segPLV{cond}(:,band,ci) = computePPC(BB.PhiTime{cond}(:,dind));
-                
-            end
-        end
-       
-        % Normalize the PPC
-        if numel(BB.segPLV{cond})>2
-            BB.segPLV{cond}(:,band,:) = (BB.segPLV{cond}(:,band,:)-median(BB.segPLV{cond}(:,band,:),3))./median(BB.segPLV{cond}(:,band,:),3)*100;
-        end
-        
-%         close all
-        % Bin data by PLV and find Amplitude
-        BB.binPLVEd = BB.range.PLV;
-        if isequal([band cond],[3 1]); BB.Amp_binPLV = []; end
-        for bs = 1:numel(BB.binPLVEd)-1
-            if size(BB.segA_save{cond}(:),1)>1
-                s = find(BB.segPLV{cond}(:,band,:)>=BB.binPLVEd(bs) & BB.segPLV{cond}(:,band,:)<BB.binPLVEd(bs+1));
-            else
-                s = 1;
-            end
-            % Unnormalized
-            x = nanmean(BB.segA_save{cond}(s));
-            xv = nanstd(BB.segA_save{cond}(s))/sqrt(numel(s));
-            w = (numel(s)/numel(BB.segAPrc_save{cond}));
-            %             if numel(s)<2; w = 0; end
-            
-            BB.Amp_binPLV(bs,band,cond,1) = x*w;
-            BB.Amp_binPLV(bs,band,cond,2) = xv*w;
-            BB.Amp_binPLV_data{cond}{bs} = BB.segA_save{cond}(s);
-            
-            % Percentage Deviation
-            x = nanmean(BB.segAPrc_save{cond}(s));
-            xv = nanstd(BB.segAPrc_save{cond}(s))/sqrt(numel(s));
-            w = (numel(s)/numel(BB.segAPrc_save{cond}));
-            %             if numel(s)<2; w = 0; end
-            
-            BB.AmpPrc_binPLV(bs,band,cond,1) = x*w;
-            BB.AmpPrc_binPLV(bs,band,cond,2) = xv*w;
-            BB.AmpPrc_binPLV_data{cond}{bs} = BB.segAPrc_save{cond}(s);
-        end
-        
+% This function compiles the statistics for the synchronization measures
+% and does binning of the amplitude by sync index
 
+BB.segPLV = {nan(1,size(R.bandef,1),2) nan(1,size(R.bandef,1),2)};
+BB.segRP  = {nan(size(R.bandef,1),2) nan(size(R.bandef,1),2)};
+BB.segRP = {nan(1) nan(1)};
+BB.segPLV  = {nan(1) nan(1)};
+BB.Amp_binPLV = [];
+for cond = 1:length(R.condname)
+    % Compute the relative phase/sync index within the burst
+    for ci = 1:size(BB.segAmp{cond},2)
+        dind  = BB.segInds{cond}{ci};
+        if ~any(isnan(dind))
+            X = remnan(BB.RP{cond}(dind));
+            BB.segRP{cond}(ci) = circ_mean(X,[],1); % THIS IS A PROBLEM
+            switch R.BB.PLmeth
+                case 'PLV'
+                    BB.segPLV{cond}(:,ci) = abs(mean(exp(-1i*X),1));
+                case 'PPC'
+                    BB.segPLV{cond}(:,ci) = computePPC(BB.Phi{cond}(:,dind));
+            end
+        end
     end
+    
+    % %     % Normalize the sync metric (OPTIONAL!)
+    % %     if numel(BB.segPLV{cond})>2
+    % %         BB.segPLV{cond}(:,band,:) = (BB.segPLV{cond}(:,band,:)-median(BB.segPLV{cond}(:,band,:),3))./median(BB.segPLV{cond}(:,band,:),3)*100;
+    % %     end
+    
+    % Bin amplitude by PLV
+    [BB.Amp_binPLV(:,:,cond),BB.Amp_binPLV_data{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.PLV);
+    % Bin normalized amplitude by PLV
+    [BB.AmpPrc_binPLV(:,:,cond),BB.AmpPrc_binPLV_data{cond}] = binDatabyRange(BB.segAmpPrc{cond},BB.range.PLV);
 end
 
+BB.guide = [BB.guide;{...
+    'segPLV - burst sync index'
+    'segRP - burst relative phase'
+    'Amp_binPLV - burst amplitude by PLV'
+    'Amp_binPLV_data - "" data'
+    'AmpPrc_binPLV - burst prc amps bin by PLV'
+    'AmpPrc_binPLV_data - "" data'
+    }];
 
-%% script grave
+
+
+
+%% %%%%%%%%%%%%%%%%%%%
+%%% script grave %%%%%%
 % %  COMPUTE NON-SEGMENTED SCATTERGRAMS
 % % figure; p = 0;
 % % for cond = 1:2
