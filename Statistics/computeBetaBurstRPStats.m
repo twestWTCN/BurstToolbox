@@ -1,6 +1,6 @@
 function BB = computeBetaBurstRPStats(R,BB)
 % This function computes relative phase
-BB.Seg_binRP = []; BB.PLV_binRP = [];
+BB.Dur_binRP = []; BB.PLV_binRP = [];
 for cond = 1:length(R.condname)
     if ~isfield(BB,'segRP') % if doesnt exist compute relative phase
         for ci = 1:size(BB.segAmp{cond},2)

@@ -2,10 +2,10 @@ function BB = computeBetaBurstPLVStats(R,BB)
 % This function compiles the statistics for the synchronization measures
 % and does binning of the amplitude by sync index
 
-BB.segPLV = {nan(1,size(R.bandef,1),2) nan(1,size(R.bandef,1),2)};
-BB.segRP  = {nan(size(R.bandef,1),2) nan(size(R.bandef,1),2)};
-BB.segRP = {nan(1) nan(1)};
-BB.segPLV  = {nan(1) nan(1)};
+BB.segPLV = {nan(1,size(R.bandef,1),2) nan(1,size(R.bandef,1),2) nan(1,size(R.bandef,1),2)};
+BB.segRP  = {nan(size(R.bandef,1),2) nan(size(R.bandef,1),2) nan(size(R.bandef,1),2)};
+BB.segRP = {nan(1) nan(1) nan(1)};
+BB.segPLV  = {nan(1) nan(1) nan(1)};
 BB.Amp_binPLV = [];
 for cond = 1:length(R.condname)
     % Compute the relative phase/sync index within the burst

@@ -10,7 +10,7 @@ function [BB] = computeBetaBurstAmpDurStats_v2(R,BB)
 %     'binSgEd = set of bin edges'
 %     'segTInds = start end of time'
 %     };
-BB.Seg_binAmp = [];
+BB.Dur_binAmp = [];
 BB.Amp_binDur = [];
 
 for cond = 1:length(R.condname)
