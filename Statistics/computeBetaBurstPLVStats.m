@@ -29,9 +29,9 @@ for cond = 1:length(R.condname)
     % %     end
     
     % Bin amplitude by PLV
-    [BB.Amp_binPLV(:,:,cond),BB.Amp_binPLV_data{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.PLV);
+    [BB.Amp_binPLV(:,:,cond),BB.Amp_binPLV_data{cond}] = binDatabyRange(BB.segPLV{cond},BB.range.PLV,BB.segAmp{cond});
     % Bin normalized amplitude by PLV
-    [BB.AmpPrc_binPLV(:,:,cond),BB.AmpPrc_binPLV_data{cond}] = binDatabyRange(BB.segAmpPrc{cond},BB.range.PLV);
+    [BB.AmpPrc_binPLV(:,:,cond),BB.AmpPrc_binPLV_data{cond}] = binDatabyRange(BB.segPLV{cond},BB.range.PLV,BB.segAmpPrc{cond});
 end
 
 BB.guide = [BB.guide;{...

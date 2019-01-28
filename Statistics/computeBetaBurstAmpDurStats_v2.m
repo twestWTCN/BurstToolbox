@@ -17,10 +17,10 @@ for cond = 1:length(R.condname)
     BB = defineBetaEvents(R,BB);
     
     % Bin data by Amp and find Length
-    [BB.Dur_binAmp(:,:,cond),BB.Seg_binAmpData{cond}] = binDatabyRange(BB.segDur{cond},BB.range.Amp);
+    [BB.Dur_binAmp(:,:,cond),BB.Dur_binAmpData{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.Amp,BB.segDur{cond});
     
     % Bin data by length and find amplitude
-    [BB.Amp_binDur(:,:,cond),BB.Amp_binDurData{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.Dur);
+    [BB.Amp_binDur(:,:,cond),BB.Amp_binDurData{cond}] = binDatabyRange(BB.segDur{cond},BB.range.Dur,BB.segAmp{cond});
     
     % Do amplitude/length correlation stats
     if numel(BB.segAmp{cond})>2
@@ -36,8 +36,8 @@ end
 
 % Add definitions of variables
 BB.guide = [BB.guide;{...
-    'Seg_binAmp - burst durations bin by amp'
-    'Seg_binAmpData - "" data'
+    'Dur_binAmp - burst durations bin by amp'
+    'Dur_binAmpData - "" data'
     'Amp_binDur - burst amps bin by dur'
     'Seg_binAmpData - "" data'
     }];

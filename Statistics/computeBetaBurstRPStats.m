@@ -13,11 +13,11 @@ for cond = 1:length(R.condname)
     end
     
     % Bin amplitude by RP
-    [BB.Amp_binRP(:,:,cond),BB.Amp_binRP_data{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.RP);
+    [BB.Amp_binRP(:,:,cond),BB.Amp_binRP_data{cond}] = binDatabyRange(BB.segRP{cond},BB.range.RP,BB.segAmp{cond});
     % Bin normalized amplitude by RP
-    [BB.AmpPrc_binRP(:,:,cond),BB.AmpPrc_binRP_data{cond}] = binDatabyRange(BB.segAmpPrc{cond},BB.range.RP);
+    [BB.AmpPrc_binRP(:,:,cond),BB.AmpPrc_binRP_data{cond}] = binDatabyRange(BB.segRP{cond},BB.range.RP,BB.segAmpPrc{cond});
     % Bin sync index by RP
-    [BB.PLV_binRP(:,:,cond),BB.PLV_binRP_data{cond}] = binDatabyRange(BB.segPLV{cond},BB.range.RP);
+    [BB.PLV_binRP(:,:,cond),BB.PLV_binRP_data{cond}] = binDatabyRange(BB.segRP{cond},BB.range.RP,BB.segPLV{cond});
     
 end
 BB.guide = [BB.guide;{...
