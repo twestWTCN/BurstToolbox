@@ -42,38 +42,16 @@ data_tvec = data.time{1};
 
 switch R.BB.decompmeth.type
     case 'wavelet'
-        %% Now do Wavelet for Amplitude (wider)
-        % compute width for target resolution
-        % wid = 2*frq / Res
-        % +/- 5 Hz res
-        wid = (2*BB.powfrq)/R.BB.powres;
-        
-        cfg1 = [];
-        cfg1.method     = 'wavelet';
-        cfg1.width      = wid;
-        cfg1.gwidth     = 5;
-        cfg1.output     = 'fourier';
-        cfg1.foi        = 8:0.5:35;
-        cfg1.toi        = data.time{1};
-        cfg1.pad = 'nextpow2';
-        TFR1wave = ft_freqanalysis(cfg1, data);
-        
-        %% Now do Wavelet for Phase (narrower)
-        % compute width for target resolution
-        % wid = 2*frq / Res
-        % +/- 5 Hz res
-        wid = (2*BB.cohfrq)/R.BB.cohres;
-
-        cfg2 = [];
-        cfg2.method     = 'wavelet';
-        cfg2.width      = wid;
-        cfg2.gwidth     = 5;
-        cfg2.output     = 'fourier';
-        cfg2.foi        = 8:0.5:35;
-        cfg2.toi        = data.time{1};
-        cfg2.pad = 'nextpow2';
-        TFR2wave = ft_freqanalysis(cfg2, data);        
-        
+        %% Now do Wavelet
+        cfg = [];
+        cfg.method     = 'wavelet';
+        cfg.width      = 12;
+        cfg.gwidth     = 5;
+        cfg.output     = 'fourier';
+        cfg.foi        = 8:0.5:35;
+        cfg.toi        = data.time{1};
+        cfg.pad = 'nextpow2';
+        TFRwave = ft_freqanalysis(cfg, data);
     case 'filter'
         % Filter at frequency for power
         cfg = [];
@@ -93,26 +71,26 @@ switch R.BB.decompmeth.type
         % OR account for smoothing and dont stray outside band
         % % [dum fInd] = min(abs(TFRwave.freq-median(R.bandef(2,:)))); % Take middle!
         %%% OR use peak of spectral power
-        [dum fIndAng] = min(abs(TFR1wave.freq-BB.powfrq)); % Use closest frequency bin
+        [dum fIndAng] = min(abs(TFRwave.freq-BB.powfrq)); % Use closest frequency bin
         % Indices of foi for angle
-        [dum fIndPhi] = min(abs(TFR2wave.freq-BB.cohfrq)); % Take coh peak!
+        [dum fIndPhi] = min(abs(TFRwave.freq-BB.cohfrq)); % Take coh peak!
         
         % Display the Wavelet frq resolution
-        fbwid = (BB.powfrq/cfg1.width)*2; %!
-        disp([R.bandinits{2} ' amp estimate at mid freq ' num2str(TFR1wave.freq(fIndAng)) ' Hz +/- ' num2str(fbwid)]) %!
+        fbwid = (BB.powfrq/cfg.width)*2; %!
+        disp([R.bandinits{2} ' amp estimate at mid freq ' num2str(TFRwave.freq(fIndAng)) ' Hz +/- ' num2str(fbwid)]) %!
         
         % Display the Wavelet frq resolution
-        fbwid = (BB.cohfrq/cfg2.width)*2;
-        disp([R.bandinits{2} ' phase estimate at mid freq ' num2str(TFR2wave.freq(fIndPhi)) ' Hz +/- ' num2str(fbwid)])
+        fbwid = (BB.cohfrq/cfg.width)*2;
+        disp([R.bandinits{2} ' phase estimate at mid freq ' num2str(TFRwave.freq(fIndPhi)) ' Hz +/- ' num2str(fbwid)])
         
         % Now compute Amplitude
-        P = squeeze(TFR1wave.fourierspctrm(1,:,fIndAng,:));
+        P = squeeze(TFRwave.fourierspctrm(1,:,fIndAng,:));
         AmpTime = abs(P).^2;
-        PhiTime = angle(P); % temp phase for wide band signal
+        PhiTime = angle(P);
         Z = AmpTime.*cos(PhiTime);
         
-        % Now compute phase 
-        P = squeeze(TFR2wave.fourierspctrm(1,:,fIndPhi,:));
+        % Now compute phase
+        P = squeeze(TFRwave.fourierspctrm(1,:,fIndPhi,:));
         PhiTime = angle(P);
         
     case 'filter'

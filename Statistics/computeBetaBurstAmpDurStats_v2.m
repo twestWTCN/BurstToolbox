@@ -14,6 +14,7 @@ BB.Dur_binAmp = [];
 BB.Amp_binDur = [];
 
 for cond = 1:length(R.condname)
+    BB = defineBetaEvents(R,BB);
     
     % Bin data by Amp and find Length
     [BB.Dur_binAmp(:,:,cond),BB.Dur_binAmpData{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.Amp,BB.segDur{cond});
