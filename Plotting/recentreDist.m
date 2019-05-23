@@ -1,4 +1,4 @@
-function A = recentreDist(A)
+function [A,K] = recentreDist(A)
 A = reshape(A,size(A,1),[]);
 
 for i = 1:size(A,2)
