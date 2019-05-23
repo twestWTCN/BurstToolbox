@@ -1,4 +1,7 @@
 function plotExampleBurstPLV(R,BB)
+if ~isfield(R,'condcmap')
+R.condcmap = jet(2);
+end
 BB.T = linspace(0,length([BB.AEnv{1:2}])/BB.fsamp,length([BB.AEnv{1:2}])); % Data time
 BB.TSw = linspace(0,length([BB.PLV{1:2}])/BB.fsamp_sw,length([BB.PLV{1:2}])); % sliding window time
 
@@ -6,7 +9,7 @@ BB.TSw = linspace(0,length([BB.PLV{1:2}])/BB.fsamp_sw,length([BB.PLV{1:2}])); % 
 
 set(gcf,'defaultAxesColorOrder',[[0 0 0]; [0.2 0.2 0.6]]);
 for cond = 1:2
-    mInd = R.BB.pairInd(2);
+    mInd = 1; %R.BB.pairInd(2);
     % Amplitude
     subplot(3,2,sub2ind([2 3],cond,1))
     yyaxis left
@@ -22,8 +25,8 @@ for cond = 1:2
     % Phase
     subplot(3,2,sub2ind([2 3],cond,2))
     yyaxis right
-    % %     a(1) = plot(BB.TSw([1:length(BB.PLV{cond}(1,:))]),BB.PLV{cond}(1,:)); hold on
-    a(1) = plot(BB.Tvec{cond}(2:end),BB.dRP{cond}'); hold on
+        a(1) = plot(BB.SWTvec{cond},BB.PLV{cond}(1,:)); hold on
+% %     a(1) = plot(BB.Tvec{cond}(2:end),BB.dRP{cond}'); hold on
     a(1).Color = R.condcmap(cond,:);
     % %     ylim([0 1])
     ylabel([R.bandinits{2} ' PPC'])
@@ -33,8 +36,8 @@ for cond = 1:2
     % Amplitude/Phase Zoomed
     subplot(3,2,sub2ind([2 3],cond,3))
     yyaxis right
-    % %     a(1) = plot(BB.T([1:length(BB.PLV{cond}(1,:))]),BB.PLV{cond}(1,:)); hold on
-    a(1) = plot(BB.Tvec{cond}(2:end),BB.dRP{cond}'); hold on
+        a(1) = plot(BB.SWTvec{cond},BB.PLV{cond}(1,:)); hold on
+% %     a(1) = plot(BB.Tvec{cond}(2:end),BB.dRP{cond}'); hold on
     a(1).Color = R.condcmap(cond,:);
     a(1).LineStyle = ':';
     a(1).LineWidth = 1.5;

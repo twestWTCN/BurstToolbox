@@ -10,10 +10,15 @@ function [BB] = computeBetaBurstAmpDurStats_v2(R,BB)
 %     'binSgEd = set of bin edges'
 %     'segTInds = start end of time'
 %     };
+if isfield(R,'condnames')
+    R.condname = R.condnames;
+end
+
 BB.Dur_binAmp = [];
 BB.Amp_binDur = [];
 
 for cond = 1:length(R.condname)
+    % This is where the bursts are divided
     BB = defineBetaEvents(R,BB);
     
     % Bin data by Amp and find Length
