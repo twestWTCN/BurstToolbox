@@ -6,14 +6,15 @@ function BB  = compute_SpectralDecomposition(R,BB,data,cond,shuff)
 % 06/09/18
 
 %% Preprocessing
+if BB.preproc.fillmissing == 1
 for i = 1:size(data.trial{1},1)
     x = data.trial{1}(i,:);
     x(abs(x)>(4*std(x))) = NaN;
     x= fillmissing(x,'spline');
     data.trial{1}(i,:) = x;
 end
-
-if shuff == 1||2
+end
+if shuff == 1|| shuff == 2
     for i = 1:size(data.trial{1},1)
         x = data.trial{1}(i,:);
         if shuff == 1
@@ -24,14 +25,13 @@ if shuff == 1||2
         data.trial{1}(i,:) = x;
     end
 end
-
+if BB.preproc.znorm == 1
 for i = 1:size(data.trial{1},1)
     x = data.trial{1}(i,:);
     x = (x-mean(x))./std(x);
     data.trial{1}(i,:) = x;
 end
-
-
+end
 % % % cfg = []
 % % % cfg.channel = 'STN_L01';
 % % % cfg.zlim = [0 60]
@@ -55,11 +55,13 @@ switch R.BB.decompmeth.type
     case 'filter'
         % Filter at frequency for power
         cfg = [];
-        cfg.bandpass = [BB.powfrq-R.BB.decompmeth.filter.bwid BB.powfrq+R.BB.decompmeth.filter.bwid];
+        cfg.bpfilter      = 'yes';
+        cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwid BB.powfrq+R.BB.decompmeth.filter.bwid];
         dataAmp = ft_preprocessing(cfg,data);
         % Filter at frequency for connectivity
         cfg = [];
-        cfg.bandpass = [BB.powfrq-R.BB.decompmeth.filter.bwid BB.powfrq+R.BB.decompmeth.filter.bwid];
+        cfg.bpfilter      = 'yes';
+        cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwid BB.powfrq+R.BB.decompmeth.filter.bwid];
         dataPhi = ft_preprocessing(cfg,data);
 end
 
@@ -94,13 +96,16 @@ switch R.BB.decompmeth.type
         PhiTime = angle(P);
         
     case 'filter'
-        P = squeeze(dataAmp.trial{1});
-        AmpTime = abs(hilbert(P)).^2;
-        PhiTime = angle(hilbert(P));
-        Z = AmpTime.*cos(PhiTime);
-        
+        A = squeeze(dataAmp.trial{1});
         P = squeeze(dataPhi.trial{1});
-        PhiTime = angle(hilbert(P));
+        for l = 1:size(P,1)
+            AmpTime(l,:) = abs(hilbert(A(l,:)));
+            %         PhiTime = angle(hilbert(A(l,:)));
+            %         Z = AmpTime.*cos(PhiTime);
+            Z = P(l,:);
+            
+            PhiTime(l,:) = angle(hilbert(P(l,:)));
+        end
 end
 
 % Unwrap the phi time series
