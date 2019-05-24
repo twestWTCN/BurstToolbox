@@ -2,9 +2,9 @@ function [h,l] = plotBurstAmplitudeHistogram(R,BB,condsel)
 if ~isfield(R,'condcmap')
     R.condcmap = jet(max(condsel));
 end
-if isfield(R,'condnames')
-    R.condname = R.condnames;
-end
+% if isfield(R,'condnames')
+%     R.condname = R.condnames;
+% end
 if nargin<3
     condsel = 1:size(BB.A,2);
 end
