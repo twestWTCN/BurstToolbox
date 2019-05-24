@@ -1,4 +1,4 @@
-function [A,K] = recentreDist(A)
+function [A,B] = recentreAbyMaxB(A,B)
 A = reshape(A,size(A,1),[]);
 
 for i = 1:size(A,2)
