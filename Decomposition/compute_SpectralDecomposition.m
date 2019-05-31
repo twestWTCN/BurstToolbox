@@ -41,6 +41,9 @@ end
 data_tvec = data.time{1};
 
 switch R.BB.decompmeth.type
+    case 'none'
+        dataAmp  = data;
+        dataPhi  = data;
     case 'wavelet'
         %% Now do Wavelet
         cfg = [];
@@ -56,12 +59,14 @@ switch R.BB.decompmeth.type
         % Filter at frequency for power
         cfg = [];
         cfg.bpfilter      = 'yes';
-        cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwid BB.powfrq+R.BB.decompmeth.filter.bwid];
+        cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwidamp BB.powfrq+R.BB.decompmeth.filter.bwidamp];
+%         cfg.bpfilttype    = 'firws';
         dataAmp = ft_preprocessing(cfg,data);
         % Filter at frequency for connectivity
         cfg = [];
         cfg.bpfilter      = 'yes';
-        cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwid BB.powfrq+R.BB.decompmeth.filter.bwid];
+%         cfg.bpfilttype    = 'firws';
+        cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwidsync BB.powfrq+R.BB.decompmeth.filter.bwidsync];
         dataPhi = ft_preprocessing(cfg,data);
 end
 
@@ -95,22 +100,22 @@ switch R.BB.decompmeth.type
         P = squeeze(TFRwave.fourierspctrm(1,:,fIndPhi,:));
         PhiTime = angle(P);
         
-    case 'filter'
+    case {'filter','none'}
         A = squeeze(dataAmp.trial{1});
         P = squeeze(dataPhi.trial{1});
         for l = 1:size(P,1)
-            AmpTime(l,:) = abs(hilbert(A(l,:)));
+            AmpTime(l,:) = abs(hilbert(A(l,:))).^2;
             %         PhiTime = angle(hilbert(A(l,:)));
             %         Z = AmpTime.*cos(PhiTime);
-            Z = P(l,:);
+%             Z(l,:) = P(l,:);
             
             PhiTime(l,:) = angle(hilbert(P(l,:)));
         end
 end
 
 % Unwrap the phi time series
-for ci = 1:size(PhiTime,1); PhiTime(ci,:) = unwrap(PhiTime(ci,:)); end
-RPtime = diff(PhiTime(R.BB.pairInd,:),1,1)';
+for ci = 1:size(PhiTime,1); uwPhiTime(ci,:) = unwrap(PhiTime(ci,:)); end
+RPtime = diff(uwPhiTime(R.BB.pairInd,:),1,1)';
 
 %% (optional) normalize the amplitudes
 % Optionally you can normalize the amplitude timeseries here- NOT USED - This is done later in
@@ -171,7 +176,7 @@ BB.RP{cond} = RPtime;
 BB.swRP{cond} = swRP;
 BB.dRP{cond} = diff(RPtime);
 BB.Phi{cond} = PhiTime;
-BB.BP{cond} = Z;
+BB.BP{cond} = P;
 BB.data{cond} = data.trial{1};
 
 BB.history.Origin = date;

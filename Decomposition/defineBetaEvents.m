@@ -10,10 +10,7 @@ if ~any(strncmp(BB.guide,'segInds',7))
         }];
 end
 for cond = 1:length(R.condname)
-    % Threshold Envelopes to get bursts
-    BB.epsAmp = prctile([BB.AEnv{:}],R.BB.thresh_prctile,2);
-    BB.epsPLV = prctile([BB.PLV{:}],R.BB.thresh_prctile,2);
-    
+
     Amp = BB.AEnv{cond}; % Copy amplitude data
     ThreshX = double(Amp>BB.epsAmp); % Threshold on eps
     
@@ -31,7 +28,7 @@ for cond = 1:length(R.condname)
     BB.segInds{cond} = betaBurstInds;
     
     % Segment Time indexes
-    BB.segInds{cond}{1} = NaN(1,2); BB.segDur{cond} = NaN; BB.segAmp{cond} = NaN;
+    BB.segT{cond}{1} = NaN(1,2); BB.segDur{cond} = NaN; BB.segAmp{cond} = NaN;
     for ci = 1:numel(betaBurstInds)
         BB.segT{cond}{ci} = BB.Tvec{cond}(betaBurstInds{ci}); % segment time vectors
         BB.segDur{cond}(ci) = diff(BB.segT{cond}{ci}([1 end]))*1000; % segment duration (ms)

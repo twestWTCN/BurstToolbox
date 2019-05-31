@@ -7,7 +7,15 @@ F(1) = figure; F(2) = figure; F(3) = figure; F(4) = figure; F(5) = figure;
 ip = 0;
 for cond = condsel
     ip = ip + 1;
-    BurstTimeLockAnalysis_SortByLength(R,cond,ip,BB,0,F);
+    TL.periodT = [-800 800];
+    TL = defineBurstTimeLockEpoch(BB,TL);
+    TL = plotTimeLockAnalysis(R,TL);
+
+
+
+
+
+
     for i = 1:4
         figure(F(i));
         title(R.condname{cond});
@@ -82,7 +90,7 @@ XR(3,:) = (BB.PhiTime{2}(2,:)-BB.PhiTime{1}(4,:));
 XRD = diff(XR,[],2);
 plot(T(2:end),XRD)
 
-a(4) = subplot(5,1,4)
+a(4) = subplot(5,1,4);
     for struc = 1:5
         if struc<5
             plot(T(1,1000:end-1000),1*zscore(BB.BPTime{2}(struc,1000:end-1000)) - struc*10,'color',BB.struccmap(struc,:))
