@@ -1,4 +1,7 @@
-function [binStats, binData] = binDatabyRange(dataX,binXEdges,dataY)
+function [binStats, binData] = binDatabyRange(dataX,binXEdges,dataY,wtype)
+if nargin<4
+    wtype = 'number';
+end
 % function to bind 'dataY' by bins set by dataX with edges defined by 'binXEdges'.
 % outputs
 binXEdges = [binXEdges inf];
@@ -7,8 +10,13 @@ for bs = 1:numel(binXEdges)-1
     x = nanmean(dataY(s)); % mean of bin
 %     xv = nanstd(dataY(s))/sqrt(numel(s)); % SEM of bin
     xv = nanstd(dataY(s))/nanmean(dataY(s)); % CoV of bin
+    switch wtype
+        case 'number'
     w = (numel(s)/numel(dataY)); % weighting
-    %         if numel(s)<2; w = 0; end
+        case 'minSize'
+            w = 1;
+            if numel(s)<4; w = NaN; end
+    end
     
     binStats(bs,1) = x*w;
     binStats(bs,2) = xv*w;
@@ -17,3 +25,4 @@ for bs = 1:numel(binXEdges)-1
     
     binData{bs} = dataY(s);
 end
+a = 1;

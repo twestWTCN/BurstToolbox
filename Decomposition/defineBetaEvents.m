@@ -33,6 +33,10 @@ for cond = 1:length(R.condname)
         BB.segT{cond}{ci} = BB.Tvec{cond}(betaBurstInds{ci}); % segment time vectors
         BB.segDur{cond}(ci) = diff(BB.segT{cond}{ci}([1 end]))*1000; % segment duration (ms)
         BB.segAmp{cond}(ci) = nanmean(Amp(2,betaBurstInds{ci}));
+        BB.segRP{cond}(ci) = circ_median(BB.RP{cond}(betaBurstInds{ci}(1:floor(BB.period))));
+        BB.segPPC{cond}(ci) = computePPC(BB.Phi{cond}([1 4],betaBurstInds{ci}));
+        RP = diff(BB.Phi{cond}([1 4],betaBurstInds{ci}),1,1);
+        BB.segPLV{cond}(ci) = abs(mean(exp(-1i*RP'),1));
     end
 
     %%% Normalization
