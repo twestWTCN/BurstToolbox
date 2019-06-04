@@ -15,7 +15,7 @@ for bs = 1:numel(binXEdges)-1
     w = (numel(s)/numel(dataY)); % weighting
         case 'minSize'
             w = 1;
-            if numel(s)<4; w = NaN; end
+            if numel(s)<3; w = NaN; end
     end
     
     binStats(bs,1) = x*w;

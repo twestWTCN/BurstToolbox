@@ -10,6 +10,7 @@ if nargin<3
 end
 % Plots Histogram of Burst Amplitudes normalized by series duration
 % (burst/s)
+
 for cond = condsel
     h(cond) = rateLogHistogram(BB.segAmp{cond},BB.range.Amp,diff(BB.Tvec{cond}([1 end]))/60,0); hold on
     h(cond).FaceColor = R.condcmap(cond,:);
