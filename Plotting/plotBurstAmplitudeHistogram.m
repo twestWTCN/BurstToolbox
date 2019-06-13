@@ -12,6 +12,7 @@ end
 % (burst/s)
 
 for cond = condsel
+%     rateLogHistogram2D([BB.segAmp{cond};BB.segDur{cond}],[BB.range.Amplr; BB.range.Durlr],diff(BB.Tvec{cond}([1 end]))/60)
     h(cond) = rateLogHistogram(BB.segAmp{cond},BB.range.Amp,diff(BB.Tvec{cond}([1 end]))/60,0); hold on
     h(cond).FaceColor = R.condcmap(cond,:);
     h(cond).FaceAlpha = 0.75;
