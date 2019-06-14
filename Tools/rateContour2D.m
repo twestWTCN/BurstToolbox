@@ -16,5 +16,5 @@ midsHR(2,:) = linspace(mids(2,1),mids(2,end),size(mids,2)*5);
 map = interp2(mids(1,:),mids(2,:),ncount,Xq,Yq,'spline');
 [dum,b,cf] = contourf(Xq,Yq,map,cntlevs);
 colormap(cmap);
-
+caxis([0 max(cntlevs)])
 box off

@@ -1,4 +1,4 @@
-function [h,l] = plotBurstAmplitudeDurationHistogram(R,BB,condsel,cmap)
+function [h,l] = plotBurstAmplitudeDurationHistogram(R,BB,condsel,cmap,cntlevs)
 if ~isfield(R,'condcmap')
     R.condcmap = jet(max(condsel));
 end
@@ -15,7 +15,6 @@ for cond = condsel
     p = p + 1;
     subplot(3,1,p)
     %     h = rateLogHistogram2D([BB.segAmp{cond};BB.segDur{cond}],[BB.range.Amplr; BB.range.Durlr],diff(BB.Tvec{cond}([1 end]))/60);
-    cntlevs = 0.5:0.5:8;
     h = rateContour2D([BB.segAmp{cond};BB.segDur{cond}],[BB.range.Amplr; BB.range.Durlr],diff(BB.Tvec{cond}([1 end]))/60,cntlevs,cmap);
 
     xlabel('Amplitude'); ylabel('log_{10} Duration (ms)')
