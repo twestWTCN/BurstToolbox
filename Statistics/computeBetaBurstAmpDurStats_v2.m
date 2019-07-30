@@ -19,7 +19,7 @@ BB.Amp_binDur = [];
 
 for cond = 1:length(R.condname)
     % This is where the bursts are divided
-    BB = defineBetaEvents(R,BB);
+%     BB = defineBetaEvents(R,BB);
     
     % Bin data by Amp and find Length
     [BB.Dur_binAmp(:,:,cond),BB.Dur_binAmpData{cond}] = binDatabyRange(BB.segAmp{cond},BB.range.Amp,BB.segDur{cond});

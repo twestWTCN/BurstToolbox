@@ -21,8 +21,8 @@ for cond = condsel
     end
     sp(cond) = scatter(A,B,25,R.condcmap(cond,:),'filled'); hold on
     sp(cond).MarkerFaceAlpha = 0.7;
-    [xCalc yCalc b Rsq] = linregress(A',B');
-    plot(xCalc,yCalc,'color',R.condcmap(cond,:),'LineWidth',2); ylim(BB.plot.lims.Dur); xlim(BB.plot.lims.Amp)
+%     [xCalc yCalc b Rsq] = linregress(A',B');
+%     plot(xCalc,yCalc,'color',R.condcmap(cond,:),'LineWidth',2); ylim(BB.plot.lims.Dur); xlim(BB.plot.lims.Amp)
 end
 
 legend(sp(condsel),{R.condname{condsel}},'Location','NorthEast'); 
@@ -30,4 +30,4 @@ xlabel('log_{10} Burst Amplitude'); ylabel('log_{10} Burst Duration (ms)');
 % xlim(BB.plot.lims.Amp); ylim([BB.plot.lims.Dur]);
 box off
 title('Burst Amplitude vs Duration ');
-BB.stats.AmpCond = statvec(BB.segAmp{cond}',BB.segDur{cond}',2);
+% BB.stats.AmpCond = statvec(BB.segAmp{cond}',BB.segDur{cond}',2);

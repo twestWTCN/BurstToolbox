@@ -13,7 +13,7 @@ end
 p = 0;
 for cond = condsel
     p = p + 1;
-    subplot(3,1,p)
+    subplot(3,3,(3*p)-1)
     %     h = rateLogHistogram2D([BB.segAmp{cond};BB.segDur{cond}],[BB.range.Amplr; BB.range.Durlr],diff(BB.Tvec{cond}([1 end]))/60);
     h = rateContour2D([BB.segAmp{cond};BB.segDur{cond}],[BB.range.Amplr; BB.range.Durlr],diff(BB.Tvec{cond}([1 end]))/60,cntlevs,cmap);
 

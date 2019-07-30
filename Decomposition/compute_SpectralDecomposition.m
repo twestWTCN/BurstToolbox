@@ -115,7 +115,12 @@ end
 
 % Unwrap the phi time series
 for ci = 1:size(PhiTime,1); uwPhiTime(ci,:) = unwrap(PhiTime(ci,:)); end
-RPtime = diff(uwPhiTime(R.BB.pairInd,:),1,1)';
+
+
+Xcmb = nchoosek(1:size(data.label,2), 2);
+for i = 1:size(Xcmb,1)
+    RPtime(:,Xcmb(i,1),Xcmb(i,2)) = diff(uwPhiTime([Xcmb(i,1),Xcmb(i,2)],:),1,1)';
+end
 
 %% (optional) normalize the amplitudes
 % Optionally you can normalize the amplitude timeseries here- NOT USED - This is done later in
@@ -129,7 +134,7 @@ RPtime = diff(uwPhiTime(R.BB.pairInd,:),1,1)';
 winsize = R.BB.SW.winsize.*data.fsample; % Window Size
 overlap = R.BB.SW.winover; %
 % Run the sliding window over RP series
-[slide_dphi_12,sind] = slideWindow(RPtime, floor(winsize), floor(winsize*overlap));
+[slide_dphi_12,sind] = slideWindow(squeeze(RPtime(:,R.BB.pairInd(1),R.BB.pairInd(2))),floor(winsize), floor(winsize*overlap));
 switch R.BB.PLmeth
     case 'PLV'
         PLVTime(1,:) = abs(mean(exp(-1i*slide_dphi_12),1));

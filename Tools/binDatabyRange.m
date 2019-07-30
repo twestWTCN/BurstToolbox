@@ -8,8 +8,8 @@ binXEdges = [binXEdges inf];
 for bs = 1:numel(binXEdges)-1
     s = find(dataX>=binXEdges(bs) & dataX<binXEdges(bs+1));
     x = nanmean(dataY(s)); % mean of bin
-%     xv = nanstd(dataY(s))/sqrt(numel(s)); % SEM of bin
-    xv = nanstd(dataY(s))/nanmean(dataY(s)); % CoV of bin
+    xv = nanstd(dataY(s))/sqrt(numel(s)); % SEM of bin
+%     xv = nanstd(dataY(s))/nanmean(dataY(s)); % CoV of bin
     switch wtype
         case 'number'
     w = (numel(s)/numel(dataY)); % weighting

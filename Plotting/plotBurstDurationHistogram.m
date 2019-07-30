@@ -28,5 +28,5 @@ legend({R.condname{condsel}},'Location','NorthEast');
  ylabel('Frequency (min^{-1})'); xlabel('log_{10} Burst Duration (ms)');
  xlim(BB.plot.lims.Dur); ylim([0 20]); box off
 title('Burst Duration Distribution'); %ylim(BB.plot.lims.burfreq )
-BB.stats.DurCond  = statvec(BB.segDur{1},BB.segDur{1},1);
+% BB.stats.DurCond  = statvec(BB.segDur{1},BB.segDur{1},1);
 
