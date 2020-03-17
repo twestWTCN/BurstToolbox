@@ -1,6 +1,9 @@
-function BB = defineBetaEvents(R,BB,memflag)
+function BB = defineBetaEvents(R,BB,memflag,syncflag)
 if nargin<3
     memflag = 0; % memflag crops the long (time series) elements of BB for size reasons
+end
+if nargin<4
+    syncflag = 1;
 end
 % Function defines beta events by threshold crossing
 if ~any(strncmp(BB.guide,'segInds',7))
@@ -20,7 +23,7 @@ for cond = 1:length(R.condname)
     % Set a threshold on the shortest lengths
     BB.period = (R.BB.minBBlength/BB.powfrq)*BB.fsamp;
     % Get Bursts
-    betaBurstInds = SplitVec(find(ThreshX(R.BB.pairInd(2),:)),'consecutive');
+    betaBurstInds = SplitVec(find(ThreshX(R.BB.pairInd(2),:)),'consecutive'); % Split up data based upon the target threshold
     segL = cellfun('length',betaBurstInds);
     % Now crop using minimum
     burstSelection = segL>BB.period;
@@ -29,22 +32,38 @@ for cond = 1:length(R.condname)
     
     betaBurstInds = {betaBurstInds{burstSelection}}; % segs exceeding min length
     BB.segInds{cond} = betaBurstInds;
-    
+    BB.segRate{cond} = numel(BB.segInds{cond})./(diff(BB.T([1 end]))/60); % burst rate (min^-1)
     % Segment Time indexes
-    BB.segT{cond}{1} = NaN(1,2); BB.segDur{cond} = NaN; BB.segAmp{cond} = NaN; BB.segPLV{cond} = NaN;
-    for ci = 1:numel(betaBurstInds)-1
+    BB.segT{cond}{1} = NaN(1,2); BB.segDur{cond} = NaN(1,2); BB.segAmp{cond} = NaN(1,2); BB.segPLV{cond} = NaN(1,2); BB.segInterval{cond} = NaN(1,3);
+    for ci = 3:numel(betaBurstInds)-1
         BB.segT{cond}{ci} = BB.Tvec{cond}(betaBurstInds{ci}); % segment time vectors
         BB.segDur{cond}(ci) = diff(BB.segT{cond}{ci}([1 end]))*1000; % segment duration (ms)
-        BB.segAmp{cond}(ci) = nanmean(Amp(2,betaBurstInds{ci}));
-
-        Xcmb = nchoosek(1:size(BB.epsAmpfull,1), 2);
-        for i = 1:size(Xcmb,1)
-            BB.segRP{cond}(ci,Xcmb(i,1),Xcmb(i,2)) = circ_median(BB.RP{cond}(betaBurstInds{ci}(1:floor(BB.period)),Xcmb(i,1),Xcmb(i,2)));
+        BB.segAmp{cond}(ci) = nanmean(Amp(R.BB.pairInd(2),betaBurstInds{ci}));
+        BB.segEnv{cond}(:,:,ci) = Amp(:,betaBurstInds{ci}(1)-250:betaBurstInds{ci}(1)+250);
+        BB.segPow{cond} = BB.segAmp{cond}(ci).*BB.segDur{cond}(ci);
+        if (betaBurstInds{ci}(1)-2000)> 0 && (betaBurstInds{ci}(1)+1000)<size(Amp,2)
+        BB.segTraj{cond}(:,:,ci) = Amp(:,betaBurstInds{ci}(1)-500:betaBurstInds{ci}(1)+500);
+        else
+         BB.segTraj{cond}(:,:,ci) = nan;
+        end           
+        if ci>4
+        BB.segInterval{cond}(ci)  =  BB.segT{cond}{ci}(1)-BB.segT{cond}{ci-1}(end);
         end
-        BB.segPPC{cond}(ci) = NaN; %computePPC(BB.Phi{cond}([1 4],betaBurstInds{ci}),1);
-        %         RP = diff(BB.Phi{cond}([1 4],betaBurstInds{ci}),1,1);  % V
-        RP = diff(BB.Phi{cond}([1 4],betaBurstInds{ci}(1):betaBurstInds{ci}(1)+500),1,1); %Fixed Time Windows!
-        BB.segPLV{cond}(ci) = abs(mean(exp(-1i*RP'),1));
+        if syncflag == 1
+            Xcmb = nchoosek(1:size(BB.epsAmpfull,1), 2);
+            for i = 1:size(Xcmb,1)
+                BB.segRP{cond}(ci,Xcmb(i,1),Xcmb(i,2)) = circ_median(BB.RP{cond}(betaBurstInds{ci}(1)-floor(BB.period):betaBurstInds{ci}(1)+floor(BB.period),Xcmb(i,1),Xcmb(i,2)));
+                %             BB.segRP{cond}(ci,Xcmb(i,1),Xcmb(i,2)) = circ_median(BB.RP{cond}(betaBurstInds{ci},Xcmb(i,1),Xcmb(i,2)));
+            end
+            BB.sPPC{cond}(ci) = NaN; %computePPC(BB.Phi{cond}([1 4],betaBurstInds{ci}),1);
+            %         RP = diff(BB.Phi{cond}([1 4],betaBurstInds{ci}),1,1);  % V
+            try
+                RP = diff(BB.Phi{cond}([1 4],betaBurstInds{ci}(1):betaBurstInds{ci}(1)+500),1,1); %Fixed Time Windows!
+            catch
+                RP = NaN;
+            end
+            BB.segPLV{cond}(ci) = abs(mean(exp(-1i*RP'),1));
+        end
     end
     
     %%% Normalization

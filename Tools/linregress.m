@@ -1,4 +1,4 @@
-function [xCalc yCalc b Rsq bHd RsqHd WhitePval ] = linregress(X,Y,zerocept)
+function [xCalc yCalc b Rsq bHd RsqHd WhitePval corrStat] = linregress(X,Y,zerocept)
 if nargin<3
     zerocept = 0;
 end
@@ -12,6 +12,7 @@ else
 end
 b = X\Y;
 yCalc = X*b;
+
 Rsq = 1 - sum((Y - yCalc).^2)/sum((Y - mean(Y)).^2);
 
 % test for heteroscedasticity of residuals
@@ -27,9 +28,18 @@ if nargout>4
 %     Rhd = Bhd(2);
 %     Rhd = size(X,2)*Rhd;
 %     [dum dum stat] = archtest(Y - yCalc);
+    % Correlation Coefficient (nonparametric)
+    [corrStat{1} corrStat{2}] = corr(X,Y,'type','Spearman');
+
 end
+% Reorder
+[yCalc,srtord] = sort(yCalc);
+X = X(srtord,:);
+
 if zerocept ==1
     xCalc = X(:,1);
 else
     xCalc = X(:,2);
 end
+
+

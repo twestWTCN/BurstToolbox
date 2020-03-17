@@ -26,6 +26,6 @@ end
 
 l = legend({R.condname{condsel}},'Location','NorthEast');
  ylabel('Frequency (min^{-1})'); xlabel('log_{10} Amplitude');
-  xlim(BB.plot.lims.Amp); ylim([0 15]); box off
+  xlim(BB.plot.lims.Amp); ylim(BB.plot.lims.burfreq(1,:)); box off
 title('Burst Amplitude Distribution');
 % BB.stats.AmpCond = statvec(BB.segAmp{1},BB.segAmp{2},1);

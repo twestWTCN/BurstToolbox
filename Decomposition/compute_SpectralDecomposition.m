@@ -92,7 +92,7 @@ switch R.BB.decompmeth.type
         
         % Now compute Amplitude
         P = squeeze(TFRwave.fourierspctrm(1,:,fIndAng,:));
-        AmpTime = abs(P).^2;
+        AmpTime = abs(P);
         PhiTime = angle(P);
         Z = AmpTime.*cos(PhiTime);
         
@@ -104,7 +104,7 @@ switch R.BB.decompmeth.type
         A = squeeze(dataAmp.trial{1});
         P = squeeze(dataPhi.trial{1});
         for l = 1:size(P,1)
-            AmpTime(l,:) = abs(hilbert(A(l,:))).^2;
+            AmpTime(l,:) = abs(hilbert(A(l,:))); %.^2;
             %         PhiTime = angle(hilbert(A(l,:)));
             %         Z = AmpTime.*cos(PhiTime);
 %             Z(l,:) = P(l,:);

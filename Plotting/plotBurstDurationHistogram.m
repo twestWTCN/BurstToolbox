@@ -12,7 +12,7 @@ end
 % (burst/s)
 
 for cond = condsel
-    h(cond) = rateLogHistogram(log10(BB.segDur{cond}),BB.range.Dur,diff(BB.Tvec{cond}([1 end]))/60,0); hold on
+    h(cond) = rateLogHistogram(BB.segDur{cond},BB.range.Dur,diff(BB.Tvec{cond}([1 end]))/60,0); hold on
     h(cond).FaceColor = R.condcmap(cond,:);
     h(cond).FaceAlpha = 0.75;
     %         a = gca;
@@ -26,7 +26,7 @@ for cond = condsel
 end
 legend({R.condname{condsel}},'Location','NorthEast');
  ylabel('Frequency (min^{-1})'); xlabel('log_{10} Burst Duration (ms)');
- xlim(BB.plot.lims.Dur); ylim([0 20]); box off
+ xlim(BB.plot.lims.Dur); ylim(BB.plot.lims.burfreq(1,:)); box off
 title('Burst Duration Distribution'); %ylim(BB.plot.lims.burfreq )
 % BB.stats.DurCond  = statvec(BB.segDur{1},BB.segDur{1},1);
 
