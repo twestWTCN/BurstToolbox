@@ -18,8 +18,12 @@ end
 for cond = 1:numel(BB.data)
     
     Amp = BB.AEnv{cond}; % Copy amplitude data
-    ThreshX = double(Amp>BB.epsAmpfull(R.BB.pairInd(2))); % Threshold on eps
-    
+    switch R.BB.threshold_type
+        case 'localThresh'
+            ThreshX = double(Amp>BB.epsAmpfull(R.BB.pairInd(2),cond)); % Threshold on eps
+        case 'baseModelThresh'
+            ThreshX = double(Amp>BB.epsAmpfull(R.BB.pairInd(2),1)); % Threshold on eps
+    end
     % Set a threshold on the shortest lengths
     BB.period = (R.BB.minBBlength/BB.powfrq)*BB.fsamp;
     % Get Bursts
@@ -39,13 +43,14 @@ for cond = 1:numel(BB.data)
         BB.segT{cond}{ci} = BB.Tvec{cond}(betaBurstInds{ci}); % segment time vectors
         BB.segDur{cond}(ci) = diff(BB.segT{cond}{ci}([1 end]))*1000; % segment duration (ms)
         BB.segAmp{cond}(ci) = nanmean(Amp(R.BB.pairInd(2),betaBurstInds{ci}));
-        BB.segEnv{cond}(:,:,ci) = Amp(:,betaBurstInds{ci}(1)-250:betaBurstInds{ci}(1)+250);
+        BB.segAmpMid{cond}(ci) = Amp(R.BB.pairInd(2),floor(median(betaBurstInds{ci}))); %
+        if (betaBurstInds{ci}(1)-150)> 0 && (betaBurstInds{ci}(1)+150)<size(Amp,2)
+            BB.segEnv{cond}(:,:,ci) = Amp(:,betaBurstInds{ci}(1)-150:betaBurstInds{ci}(1)+150);
+        else
+            BB.segEnv{cond}(:,:,ci) = nan(4,501);
+        end
         BB.segPow{cond} = BB.segAmp{cond}(ci).*BB.segDur{cond}(ci);
-%         if (betaBurstInds{ci}(1)-2000)> 0 && (betaBurstInds{ci}(1)+1000)<size(Amp,2)
-%             BB.segTraj{cond}(:,:,ci) = Amp(:,betaBurstInds{ci}(1)-300:betaBurstInds{ci}(1)+300);
-%         else
-%             BB.segTraj{cond}(:,:,ci) = nan;
-%         end
+        
         if ci>4
             BB.segInterval{cond}(ci)  =  BB.segT{cond}{ci}(1)-BB.segT{cond}{ci-1}(end);
         end

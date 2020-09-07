@@ -1,11 +1,12 @@
-function BB = getBurstStatsXConds(BB)
+function BB = getBurstStatsXConds(BB,syncflag)
 % This function gets statistics of burst samples for each condition
 for cond = 1:size(BB.segAmp,2)
     BB.condstat.ssAmp(:,cond) = [nanmedian(BB.segAmp{cond}) iqr(BB.segAmp{cond}) npCI(BB.segAmp{cond})];
     BB.condstat.ssDur(:,cond) = [nanmedian(BB.segDur{cond}) iqr(BB.segDur{cond}) npCI(BB.segDur{cond})];
+    if syncflag
     BB.condstat.ssPLV(:,cond) = [nanmedian(BB.segPLV{cond}) iqr(BB.segPLV{cond}) npCI(BB.segPLV{cond})];
     BB.condstat.ssPPC(:,cond) = [nanmedian(BB.sPPC{cond}) iqr(BB.sPPC{cond}) npCI(BB.sPPC{cond})];
-    
+    end
 end
 
 

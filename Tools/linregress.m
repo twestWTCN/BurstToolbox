@@ -33,8 +33,8 @@ if nargout>4
 
 end
 % Reorder
-[yCalc,srtord] = sort(yCalc);
-X = X(srtord,:);
+% [yCalc,srtord] = sort(yCalc);
+% X = X(srtord,:);
 
 if zerocept ==1
     xCalc = X(:,1);

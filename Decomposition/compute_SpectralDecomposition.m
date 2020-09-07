@@ -7,12 +7,12 @@ function BB  = compute_SpectralDecomposition(R,BB,data,cond,shuff)
 
 %% Preprocessing
 if BB.preproc.fillmissing == 1
-for i = 1:size(data.trial{1},1)
-    x = data.trial{1}(i,:);
-    x(abs(x)>(4*std(x))) = NaN;
-    x= fillmissing(x,'spline');
-    data.trial{1}(i,:) = x;
-end
+    for i = 1:size(data.trial{1},1)
+        x = data.trial{1}(i,:);
+        x(abs(x)>(4*std(x))) = NaN;
+        x= fillmissing(x,'spline');
+        data.trial{1}(i,:) = x;
+    end
 end
 if shuff == 1|| shuff == 2
     for i = 1:size(data.trial{1},1)
@@ -26,11 +26,11 @@ if shuff == 1|| shuff == 2
     end
 end
 if BB.preproc.znorm == 1
-for i = 1:size(data.trial{1},1)
-    x = data.trial{1}(i,:);
-    x = (x-mean(x))./std(x);
-    data.trial{1}(i,:) = x;
-end
+    for i = 1:size(data.trial{1},1)
+        x = data.trial{1}(i,:);
+        x = (x-mean(x))./std(x);
+        data.trial{1}(i,:) = x;
+    end
 end
 % % % cfg = []
 % % % cfg.channel = 'STN_L01';
@@ -60,12 +60,12 @@ switch R.BB.decompmeth.type
         cfg = [];
         cfg.bpfilter      = 'yes';
         cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwidamp BB.powfrq+R.BB.decompmeth.filter.bwidamp];
-%         cfg.bpfilttype    = 'firws';
+        %         cfg.bpfilttype    = 'firws';
         dataAmp = ft_preprocessing(cfg,data);
         % Filter at frequency for connectivity
         cfg = [];
         cfg.bpfilter      = 'yes';
-%         cfg.bpfilttype    = 'firws';
+        %         cfg.bpfilttype    = 'firws';
         cfg.bpfreq = [BB.powfrq-R.BB.decompmeth.filter.bwidsync BB.powfrq+R.BB.decompmeth.filter.bwidsync];
         dataPhi = ft_preprocessing(cfg,data);
 end
@@ -107,7 +107,7 @@ switch R.BB.decompmeth.type
             AmpTime(l,:) = abs(hilbert(A(l,:))); %.^2;
             %         PhiTime = angle(hilbert(A(l,:)));
             %         Z = AmpTime.*cos(PhiTime);
-%             Z(l,:) = P(l,:);
+            %             Z(l,:) = P(l,:);
             
             PhiTime(l,:) = angle(hilbert(P(l,:)));
         end
